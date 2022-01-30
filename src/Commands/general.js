@@ -56,7 +56,7 @@ function help(message, ...args) {
             "\r\n {curly brackets} mean **optional**" +
             "\r\n -----------------------------------------------------"
         )
-        .setFooter("Garbot is an open source discord.js project by garhu. You can check the GitHub repository here -> (too lazy atm)");
+        .setFooter("Garbot is an open source discord.js project by garhu. You can check the GitHub repository at https://github.com/rhuelgarza03/Garbot");
     for (let i = arrayIndex; i < arrayIndex+cmdsPerPage; i++) {
         embed.addField(helpCommands[i].cmd, helpCommands[i].desc);
         if (i >= pages) break;
