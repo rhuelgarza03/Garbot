@@ -1,4 +1,4 @@
-# garbot
+# Garbot
 A discord bot with many features.
 
 Currently has the following features: 
