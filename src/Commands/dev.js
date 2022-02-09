@@ -1,21 +1,46 @@
+const { MessageEmbed, Message } = require("discord.js");
 const fs = require("fs");
 
+//move2fx
+function generalEmbed(title, value, prevmessage, color) {
+    let embed = new MessageEmbed()
+        .setAuthor(name=prevmessage.content, iconURL=prevmessage.member.displayAvatarURL())
+        .addField(title, value)
+        .setColor(color);
+    prevmessage.channel.send({ embeds: [embed] });
+}
+
+
 function todo(message, ...args) {
+    let actions = args.map(element => {
+        return element.toLowerCase();
+    });
     let list = JSON.parse(fs.readFileSync("src/Data/todo.json"));
-    if (args[0] == "add") { // add to list
-        list.push(args.join(" "));
-        fs.writeFile("src/Data/todo.json", JSON.stringify(list), () => {console.log("written to todo.json")} );
-        message.channel.send("Added to todo list.");
-    } else if (args[0] == "delete" && args[1]) { // delete item from list
+
+    if (actions[0] === "add" && args[1]) {
+        list.push(args.slice(1).join(" "));
+        fs.writeFile("src/Data/todo.json", JSON.stringify(list), () => {console.log(`index ${list.length} added to todo.json`)} );
+        message.channel.send(`Index ${list.length} added to todo list.`);
+    }
+    else if (actions[0] === "delete" && !isNaN(args[1])) {
         let num = parseInt(args[1]);
         list.splice(num-1, 1);
-        fs.writeFile("src/Data/todo.json", JSON.stringify(list), () => {console.log("removed to todo.json")} );
-        message.channel.send("Removed from todo list.");
-    } else { // display list
-        message.channel.send("**Garbot todo list:** \r\n" + "``" + `${list.join(" \r\n")}` + "``");
+        fs.writeFile("src/Data/todo.json", JSON.stringify(list), () => {console.log(`index ${num} removed from todo.json`)} );
+        message.channel.send(`Index ${num} removed from todo list.`);
+    } 
+    else {
+        for (let i = 0; i < list.length; i++) {
+            list[i] = (i+1) + ". " + list[i];
+        }
+        generalEmbed("Todo list:", list.join(" \r\n"), message, "#333333");
     }
 }
 
+function ping(client, message) {
+    message.channel.send(`${client.ws.ping}ms`);
+}
+
 module.exports = {
-    todo
+    todo,
+    ping
 }

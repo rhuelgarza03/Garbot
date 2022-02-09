@@ -2,19 +2,20 @@ const { MessageEmbed } = require("discord.js");
 const fs = require("fs");
 
 const WorkedRecently = new Set();
+let workCooldown = 3;
+let currency = "$";
 
-let currency = "$"; //customizable later
-
-// move to fx
+// move2fx
 // for balance(), send(), inventory()
 function parseMentions(message) {
     if (message.mentions.members.first()) {
         return message.mentions.members;
+    } else {
+        return null;
     }
-    return null;
 }
-// move to fx
-// embed for balance(), deposit(), withdraw(), send(), buy()
+// move2fx
+// for balance(), deposit(), withdraw(), send(), buy()
 function econActionEmbed(title, value, prevmessage, color) {
     let embed = new MessageEmbed()
         .setAuthor(name=prevmessage.content, iconURL=prevmessage.member.displayAvatarURL())
@@ -22,45 +23,27 @@ function econActionEmbed(title, value, prevmessage, color) {
         .setColor(color);
     prevmessage.channel.send({ embeds: [embed] });
 }
-// move to fx
-// for shop()
-function shopEmbed(prevmessage, color, items) {
-    let embed = new MessageEmbed()
-        .setAuthor(name=prevmessage.content, iconURL=prevmessage.member.displayAvatarURL())
-        .setTitle("The Store")
-        .setDescription("a pretty epic shop where you buy stuff \r\n-----------------------------------------------------")
-        .setThumbnail(prevmessage.client.user.avatarURL({size: 2048, format: "png", dynamic: "true"}))
-        .setColor(color);
-    for (let i = 0; i < items.length; i++) {
-        embed.addField(`${items[i].name} : ${currency}${items[i].price}`, items[i].desc);
-    }
-    prevmessage.channel.send({ embeds: [embed] });
-}
 
 
 function work(message, ...args) {
     if (WorkedRecently.has(message.author.id)) {
-        message.reply("Working is on a 3 seconds cooldown!");
+        message.reply(`Working is on a ${workCooldown} second cooldown!`);
     } else {
-        let obj = {};
-        obj = JSON.parse(fs.readFileSync("src/Data/economy/users.json"));
+        let obj = JSON.parse(fs.readFileSync("src/Data/economy/users.json"));
 
         // create bank account if user doesn't have one
         if (!obj[message.author.id]) {
-            obj[message.author.id] = { "cash": 0, "bank": 0 };
-            fs.writeFile("src/Data/economy/users.json", JSON.stringify(obj), () => {console.log(`bank account created for user ${message.author.id}`)} );
+            obj[message.author.id] = { "cash": 0, "bank": 0, "inv": {} };
+            fs.writeFile("src/Data/economy/users.json", JSON.stringify(obj), () => {console.log(`economy account created for user ${message.author.id}`)} );
         }
 
         // work payout calculation
-        let min = 3;
-        let max = 10;
+        let min = 5;
+        let max = 15;
         let payout = Math.floor(Math.random()*(max-min+1)+min);
 
-        let prevcash = obj[message.author.id].cash;
-        let newcash = prevcash + payout;
-        obj[message.author.id].cash = newcash;
-
-        fs.writeFile("src/Data/economy/users.json", JSON.stringify(obj), () => {console.log(`user ${message.author.id} worked and gained ${payout}`)} );
+        obj[message.author.id].cash = obj[message.author.id].cash + payout;
+        fs.writeFile("src/Data/economy/users.json", JSON.stringify(obj), () => {console.log(`user ${message.author.id} worked and was paid ${payout}`)} );
 
         // message response
         let list = JSON.parse(fs.readFileSync("src/Data/economy/workresponses.json"));
@@ -70,43 +53,35 @@ function work(message, ...args) {
         WorkedRecently.add(message.author.id);
         setTimeout(() => {
             WorkedRecently.delete(message.author.id);
-        }, 3000)
+        }, workCooldown*1000);
     }
 }
 
 function balance(message, ...args) {
     let obj = JSON.parse(fs.readFileSync("src/Data/economy/users.json"));
 
-    // whether an embed has been sent already or not
-    let sent = 0;
-
-    // if someone is mentioned, return their balance
-    if (args[0]) {
-        let mention = parseMentions(message);
-        if (mention != null) {
-            mention = mention.first();
-            if (!obj[mention.user.id]) {
-                econActionEmbed("Error", "No economy account made for this member, they can create one by doing >>work.", message, "#FF0000");
-            } else {
-                sent = 1;
-                econActionEmbed(`${mention.displayName}'s balance`, 
+    let mention = parseMentions(message);
+    if (mention) { // user mentioned
+        mention = mention.first();
+        if (!obj[mention.user.id]) {
+            econActionEmbed("Error", "No economy account made for this user, they can create one automatically by doing >>work.", message, "#FF0000");
+        } else {
+            econActionEmbed(`${mention.displayName}'s balance`, 
                 `**Cash:** ${currency}${obj[mention.user.id].cash} \r\n **Bank:** ${currency}${obj[mention.user.id].bank}`,
                 message,
                 "#333333"
-                );
-            }
-        } 
-    }
-
-    if (!obj[message.author.id]) {
-        econActionEmbed("Error", "You do not have an economy account, you can create one by doing >>work.", message, "#FF0000");
-    } 
-    else if (!sent) {
-        econActionEmbed(`${message.member.displayName}'s balance`, 
-            `**Cash:** ${currency}${obj[message.author.id].cash} \r\n **Bank:** ${currency}${obj[message.author.id].bank}`,
-            message,
-            "#333333"
-        );
+            );
+        }
+    } else { // no user mentioned
+        if (!obj[message.author.id]) {
+            econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
+        } else {
+            econActionEmbed(`${message.member.displayName}'s balance`, 
+                `**Cash:** ${currency}${obj[message.author.id].cash} \r\n **Bank:** ${currency}${obj[message.author.id].bank}`,
+                message,
+                "#333333"
+            );
+        }
     }
 }
 
@@ -116,7 +91,7 @@ function deposit(message, ...args) {
     let depositAmount = parseInt(args[0]);
 
     if (!obj[message.author.id]) {
-        econActionEmbed("Error", "You do not have an economy account, you can create one by doing >>work.", message, "#FF0000");
+        econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
     } 
     else if (obj[message.author.id].cash <= 0) {
         econActionEmbed("Error", "You have no cash right now.", message, "#FF0000");
@@ -153,7 +128,7 @@ function withdraw(message, ...args) {
     let withAmount = parseInt(args[0]);
 
     if (!obj[message.author.id]) {
-        econActionEmbed("Error", "You do not have an economy account, you can create one by doing >>work.", message, "#FF0000");
+        econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
     } 
     else if (obj[message.author.id].bank <= 0) {
         econActionEmbed("Error", "You have no money to withdraw right now.", message, "#FF0000");
@@ -161,7 +136,7 @@ function withdraw(message, ...args) {
     else if (!args[0]) {
         econActionEmbed("Error", "No amount specified.", message, "#FF0000");
     }
-    else if (args[0] === "all") {
+    else if (args[0].toLowerCase() === "all") {
         obj[message.author.id].cash += obj[message.author.id].bank;
         econActionEmbed("Withdraw successful!", `You withdrew ${currency}${obj[message.author.id].bank} from your bank account.`, message, "#333333");
         obj[message.author.id].bank = 0;
@@ -178,7 +153,7 @@ function withdraw(message, ...args) {
     } 
     else {
         obj[message.author.id].cash += withAmount;
-        econActionEmbed("Deposit successful!", `You withdrew ${currency}${withAmount} from your bank account.`, message, "#333333");
+        econActionEmbed("Withdrawal successful!", `You withdrew ${currency}${withAmount} from your bank account.`, message, "#333333");
         obj[message.author.id].bank -= withAmount;
         fs.writeFile("src/Data/economy/users.json", JSON.stringify(obj), () => {console.log(`user ${message.author.id} withdrew ${currency}${withAmount}`)} );
     }
@@ -186,33 +161,34 @@ function withdraw(message, ...args) {
 
 function send(message, ...args) {
     let obj = JSON.parse(fs.readFileSync("src/Data/economy/users.json"));
+
     let recipient = parseMentions(message);
 
-    if (recipient != null) {
+    if (recipient) {
         recipient = recipient.first();
         let sendAmount = parseInt(args[1]);
 
         if (!obj[message.author.id]) {
-            econActionEmbed("Error", "You do not have an economy account, you can create one by doing >>work.", message, "#FF0000");
+            econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
         } 
         if (!obj[recipient.user.id]) {
-            econActionEmbed("Error", "No economy account made for this recipient, they can create one by doing >>work.", message, "#FF0000");
+            econActionEmbed("Error", "No economy account made for this user, they can create one automatically by doing >>work.", message, "#FF0000");
         } 
-        else if (recipient.user.id == message.author.id) {
+        else if (recipient.user.id === message.author.id) {
             econActionEmbed("Error", "You can't send money to yourself.", message, "#FF0000");
         }
         else if (obj[message.author.id].cash <= 0) {
             econActionEmbed("Error", "You have no cash on hand to send right now.", message, "#FF0000");
         }
-        else if (args[1] === "all") {
+        else if (!args[1]) {
+            econActionEmbed("Error", "No amount specified.", message, "#FF0000");
+        }
+        else if (args[1].toLowerCase() === "all") {
             obj[recipient.user.id].bank += obj[message.author.id].cash;
             econActionEmbed("Sent successfully!", `You sent ${currency}${obj[message.author.id].cash} to <@!${recipient.user.id}>'s bank account.`, message, "#333333");
             obj[message.author.id].cash = 0;
             fs.writeFile("src/Data/economy/users.json", JSON.stringify(obj), () => {console.log(`user ${message.author.id} sent ${currency}${obj[message.author.id].cash} to user ${recipient.user.id}`)} );
         } 
-        else if (!sendAmount) {
-            econActionEmbed("Error", "No amount specified.", message, "#FF0000");
-        }
         else if (isNaN(args[1])) {
             econActionEmbed("Error", "Invalid input.", message, "#FF0000");
         } 
@@ -241,13 +217,12 @@ function buy(message, ...args) {
         // dumb code to get item name and amount of items
         let item = message.content.split(/\s+/);
         item.shift();
-        let amount = 1; // amount is 1 if not specified
+        let amount = 1; // default amount is 1 if not specified
         if (!isNaN(args[args.length - 1])) {
             item.pop();
             amount = Math.floor(args[args.length - 1]);
         }
         item = item.join(" ");
-        //
 
         let isItem = false;
         let itemIndex;
@@ -258,14 +233,11 @@ function buy(message, ...args) {
             }
         }
 
-        // if item query is a real item
         if (isItem) {
             let cost = Math.floor(amount*parseInt(shop[itemIndex].price));
-            console.log("item: " + item);
-            console.log("cost: " + cost);
 
             if (!obj[message.author.id]) {
-                econActionEmbed("Error", "You do not have an economy account, you can create one by doing >>work.", message, "#FF0000");
+                econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
             } 
             else if (cost > obj[message.author.id].cash) {
                 econActionEmbed("Error", "Insufficient funds.", message, "#FF0000");
@@ -287,83 +259,96 @@ function inventory(message, ...args) {
     let obj = JSON.parse(fs.readFileSync("src/Data/economy/users.json"));
     let shop = JSON.parse(fs.readFileSync("src/Data/economy/shop.json"));
 
-    // whether an embed has been sent already or not
-    let sent = 0;
-
-    // if someone is mentioned
-    if (args[0]) {
-        let mention = parseMentions(message);
-        if (mention != null) {
-            mention = mention.first();
-            if (!obj[mention.user.id]) {
-                econActionEmbed("Error", "No economy account made for this member, they can create one by doing >>work.", message, "#FF0000");
-            } else {
-                sent = 1;
-                let index;
-                let keys = Object.keys(obj[mention.user.id].inv);
-                let values = Object.values(obj[mention.user.id].inv);
-                let embed = new MessageEmbed()
-                    .setAuthor(name=message.content, iconURL=mention.displayAvatarURL())
-                    .setTitle(`${mention.displayName}'s Inventory`)
-                    .setColor("#333333");
-                for (let i = 0; i < keys.length; i++) {
-                    index = shop.findIndex(x => x.name === keys[i]);
-                    embed.addField(`${values[i]} ${keys[i]}(s)`, `${shop[index].desc}`);
-                }
-                message.channel.send({ embeds: [embed] });
+    let mention = parseMentions(message);
+    
+    if (mention) { // user mentioned
+        mention = mention.first();
+        if (!obj[mention.user.id]) {
+            econActionEmbed("Error", "No economy account made for this user, they can create one automatically by doing >>work.", message, "#FF0000");
+        } else {
+            let index;
+            let keys = Object.keys(obj[mention.user.id].inv);
+            let values = Object.values(obj[mention.user.id].inv);
+            let embed = new MessageEmbed()
+                .setAuthor(name=message.content, iconURL=mention.displayAvatarURL())
+                .setTitle(`${mention.displayName}'s Inventory`)
+                .setColor("#333333");
+            for (let i = 0; i < keys.length; i++) {
+                index = shop.findIndex(x => x.name === keys[i]);
+                embed.addField(`${values[i]} ${keys[i]}(s)`, `${shop[index].desc}`);
             }
-        } 
-    }
-
-    if (!obj[message.author.id]) {
-        econActionEmbed("Error", "You do not have an economy account, you can create one by doing >>work.", message, "#FF0000");
-    } 
-    else if (!sent) {
-        let index;
-        let keys = Object.keys(obj[message.author.id].inv);
-        let values = Object.values(obj[message.author.id].inv);
-        let embed = new MessageEmbed()
-            .setAuthor(name=message.content, iconURL=message.member.displayAvatarURL())
-            .setTitle(`${message.member.displayName}'s Inventory`)
-            .setColor("#333333");
-        for (let i = 0; i < keys.length; i++) {
-            index = shop.findIndex(x => x.name === keys[i]);
-            embed.addField(`${values[i]} ${keys[i]}(s)`, `${shop[index].desc}`);
+            message.channel.send({ embeds: [embed] });
         }
-        message.channel.send({ embeds: [embed] });
+    } else { // no user mentioned
+        if (!obj[message.author.id]) {
+            econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
+        } else {
+            let index;
+            let keys = Object.keys(obj[message.author.id].inv);
+            let values = Object.values(obj[message.author.id].inv);
+            let embed = new MessageEmbed()
+                .setAuthor(name=message.content, iconURL=message.member.displayAvatarURL())
+                .setTitle(`${message.member.displayName}'s Inventory`)
+                .setColor("#333333");
+            for (let i = 0; i < keys.length; i++) {
+                index = shop.findIndex(x => x.name === keys[i]);
+                embed.addField(`${values[i]} ${keys[i]}(s)`, `${shop[index].desc}`);
+            }
+            message.channel.send({ embeds: [embed] });
+        }
     }
 }
 
-function shop(message, ...args) {
-    // items in shop should NEVER have a number in them
-
+function shop(message, ...args) { // shop items should NEVER have a number in them
+    let itemArray = JSON.parse(fs.readFileSync("src/Data/economy/shop.json"));
     let itemsPerPage = 5;
 
-    let itemArray = JSON.parse(fs.readFileSync("src/Data/economy/shop.json"));
+    let pages = Math.ceil(itemArray.length / itemsPerPage);
+    let pageIndex = 1;
+    if (!isNaN(args[0]) && Math.floor(args[0]) >= 1 && Math.floor(args[0]) <= pages) pageIndex = Math.floor(args[0]);
 
-    shopEmbed(message, "#333333", itemArray);
+    let arrayIndex = 0;
+    if (pageIndex > 1) arrayIndex = (pageIndex-1)*itemsPerPage;
+
+    let shopEmbed = new MessageEmbed()
+        .setAuthor(name=message.content, iconURL=message.member.displayAvatarURL())
+        .setTitle(`The Shop (page ${pageIndex} of ${pages})`)
+        .setDescription("a pretty epic shop where you buy stuff \r\n-----------------------------------------------------")
+        .setThumbnail(message.client.user.avatarURL({size: 1024, format: "png", dynamic: "true"}))
+        .setColor("#333333");
+    for (let i = arrayIndex; i < arrayIndex+itemsPerPage; i++) {
+        if (!itemArray[i]) continue;
+        shopEmbed.addField(`${itemArray[i].name} : ${currency}${itemArray[i].price}`, itemArray[i].desc);
+    }
+    message.channel.send({ embeds: [shopEmbed] });
 }
 
 function additem(message, ...args) {
-    // will need .keys() to find specific items in the array by name
     let shop = JSON.parse(fs.readFileSync("src/Data/economy/shop.json"));
 
-    if (args.length >= 3) {
+    let array = args.join(" ").match(/[^\s"]+|"([^"]*)"/gi);
+    let noquotes = array.map(element => {
+        return element.replace(/['"]+/g, '');
+    })
+
+    if (isNaN(noquotes[1])) {
+        message.channel.send("price must be a number.");
+    }
+    else if (noquotes.length >= 3) {
         for (let i = 0; i < shop.length; i++) {
-            if (args[0] == shop[i].name) {
+            if (noquotes[0].toLowerCase() == shop[i].name.toLowerCase()) {
                 return message.channel.send("that item already exists in the shop.");
             }
         }
-
         shop.push({
-            name: args[0],
-            price: args[1],
-            desc: args.slice(2).join(" ")
-        })
-
+            name: noquotes[0],
+            price: parseInt(noquotes[1]),
+            desc: noquotes[2]
+        });
         fs.writeFile("src/Data/economy/shop.json", JSON.stringify(shop), () => { console.log("item added to shop.json") });
         message.channel.send("Item added to shop!");
-    } else {
+    } 
+    else {
         message.channel.send("not enough arguments.");
     }
 }
