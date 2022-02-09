@@ -1,11 +1,6 @@
 const { MessageEmbed } = require("discord.js");
 const fs = require("fs");
 
-// economy update on bot startup
-function updateEcon() {
-
-}
-
 // balance(), send(), inventory()
 function parseMentions(message) {
     if (message.mentions.members.first()) {
@@ -25,7 +20,6 @@ function econActionEmbed(title, value, prevmessage, color) {
 }
 
 module.exports = {
-    updateEcon,
     parseMentions,
     econActionEmbed
 }

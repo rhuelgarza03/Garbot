@@ -1,6 +1,11 @@
 const { MessageEmbed } = require("discord.js");
 const fs = require("fs");
 
+function checkPrefix(guildId) {
+    let prefs = JSON.parse(fs.readFileSync("src/Data/serverPrefs.json"));
+    return prefs[guildId].prefix;
+}
+
 function generalEmbed(title, value, prevmessage, color) {
     let embed = new MessageEmbed()
         .setAuthor(name=prevmessage.content, iconURL=prevmessage.member.displayAvatarURL())
@@ -44,6 +49,7 @@ async function findUser(discordid) {
 }
 
 module.exports = {
+    checkPrefix,
     generalEmbed,
     secondsToHms,
     numberWithCommas,

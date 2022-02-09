@@ -25,23 +25,21 @@ let prefix = ">>";
 
 // =============== events ===============
 client.on("ready", async () => {
-    console.log(`Waking ${client.user.tag}...`);
-    console.log("Bot ready!");
-    client.user.setActivity(">>help {page}");
-
+    console.log("Fetching osu! access token...");
     await fx.osu.get_access_token(); // get an osu access token for osu api-related commands
     setInterval(async () => { // refresh after expiration
         await fx.osu.get_access_token();
     }, process.env.OSU_ACCESS_TOKEN_EXPIRATION*1000);
 
-    // check for all data files here
-    // dynamically create if they dont exist
-    fx.econ.updateEcon();
+    console.log(`Waking ${client.user.tag}...`);
+    console.log("Bot ready!");
+    client.user.setActivity(">>help {page}");
 });
 
 client.on("messageCreate", async (message) => {
     console.log(`[${message.author.tag}]: ${message.content}`); // log all messages (remove after this thing hits 3 servers)
     if (message.author.bot || !message.guild) return;
+    prefix = fx.gen.checkPrefix(message.guild.id);
 
     if (message.content.startsWith("um")) {
         let msg = message.content.split(" ");
@@ -135,6 +133,9 @@ client.on("messageCreate", async (message) => {
             // dev
             case "todo":
                 cmds.dev.todo(message, ...args);
+                break;
+            case "prefix":
+                cmds.dev.prefix(message, ...args);
                 break;
             case "ping":
                 cmds.dev.ping(client, message);
