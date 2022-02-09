@@ -1,12 +1,7 @@
 const { MessageEmbed } = require("discord.js");
 
-//move2fx
-function generalEmbed(title, value, prevmessage, color) {
-    let embed = new MessageEmbed()
-        .setAuthor(name=prevmessage.content, iconURL=prevmessage.member.displayAvatarURL())
-        .addField(title, value)
-        .setColor(color);
-    prevmessage.channel.send({ embeds: [embed] });
+const fx = {
+    gen: require("../Functions/gen")
 }
 
 let helpCommands = [
@@ -71,7 +66,7 @@ function avatar(message, ...args) {
     if (member) {
         message.channel.send(member.displayAvatarURL({size: 1024, format: "png", dynamic: "true"}));
     } else {
-        generalEmbed("Error", "Member not found", message, "#FF0000");
+        fx.gen.generalEmbed("Error", "Member not found", message, "#FF0000");
     }
 }
 
@@ -80,7 +75,7 @@ function annoy(client, message, ...args) {
         client.users.fetch("474660775105921056").then((user) => { user.send(message.content) });
         message.channel.send("Message sent!");
     } else {
-        generalEmbed("Error", "You have to send *something*...", message, "#FF0000");
+        fx.gen.generalEmbed("Error", "You have to send *something*...", message, "#FF0000");
     }
 }
 
@@ -92,7 +87,7 @@ function nickname(message, ...args) {
         .then((member) => message.channel.send(`${member.user.username}'s nickname has been changed to ${nick}!`))
         .catch((error) => message.channel.send("I cannot perform that action. D:"));
     } else {
-        generalEmbed("Error", "Please specify a @user and nickname.", message, "#FF0000");
+        fx.gen.generalEmbed("Error", "Please specify a @user and nickname.", message, "#FF0000");
     }
 }
 
@@ -131,7 +126,7 @@ function userinfo(message, ...args) {
         .setFooter(`User ID: ${member.id}`);
         message.channel.send({embeds: [embed]});
     } else {
-        generalEmbed("Error", "Member not found", message, "#FF0000");
+        fx.gen.generalEmbed("Error", "Member not found", message, "#FF0000");
     }
 }
 

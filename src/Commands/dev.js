@@ -1,15 +1,9 @@
 const { MessageEmbed, Message } = require("discord.js");
 const fs = require("fs");
 
-//move2fx
-function generalEmbed(title, value, prevmessage, color) {
-    let embed = new MessageEmbed()
-        .setAuthor(name=prevmessage.content, iconURL=prevmessage.member.displayAvatarURL())
-        .addField(title, value)
-        .setColor(color);
-    prevmessage.channel.send({ embeds: [embed] });
+const fx = {
+    gen: require("../Functions/gen")
 }
-
 
 function todo(message, ...args) {
     let actions = args.map(element => {
@@ -32,7 +26,7 @@ function todo(message, ...args) {
         for (let i = 0; i < list.length; i++) {
             list[i] = (i+1) + ". " + list[i];
         }
-        generalEmbed("Todo list:", list.join(" \r\n"), message, "#333333");
+        fx.gen.generalEmbed("Todo list:", list.join(" \r\n"), message, "#333333");
     }
 }
 

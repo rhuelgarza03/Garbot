@@ -2,47 +2,12 @@ const { MessageEmbed } = require("discord.js");
 const superagent = require("superagent");
 const fs = require("fs");
 
+const fx = {
+    gen: require("../Functions/gen")
+}
+
 let API_URL = "https://osu.ppy.sh/api/v2/";
 // json SUCKS!!!!!!!!!
-
-//move2fx
-function secondsToHms(d) {
-    d = Number(d);
-    var h = Math.floor(d / 3600);
-    var m = Math.floor(d % 3600 / 60);
-    var s = Math.floor(d % 3600 % 60);
-
-    var hDisplay = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "";
-    var mDisplay = m > 0 ? m + (m == 1 ? " minute, " : " minutes, ") : "";
-    var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
-    return hDisplay + mDisplay + sDisplay;
-}
-
-//move2fx
-function numberWithCommas(num) { // add commas to any big number
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-//move2fx
-async function assignUser(discordid, osuname) {
-    let obj = {};
-    obj = JSON.parse(fs.readFileSync("src/Data/osu_users.json"));
-    obj[discordid] = osuname;
-    fs.writeFile("src/Data/osu_users.json", JSON.stringify(obj), () => {console.log(`osu! user ${osuname} assigned to ${discordid} in osu_users.json`)} );
-}
-
-//move2fx
-async function findUser(discordid) {
-    let obj = {};
-    obj = JSON.parse(fs.readFileSync("src/Data/osu_users.json"));
-    let osu = obj[discordid];
-    if (osu === undefined) {
-        return;
-    } else {
-        return osu;
-    }
-}
-
 
 async function osuset(osu_key, message, ...args) {
     if (args[0]) {
@@ -56,7 +21,7 @@ async function osuset(osu_key, message, ...args) {
                 .set("Accept", "application/json")
                 .set("Authorization", `Bearer ${osu_key}`);
             let osuname = results.body.username;
-            assignUser(message.author.id, osuname);
+            fx.gen.assignUser(message.author.id, osuname);
             message.channel.send(`Your osu! user has been set to ${osuname}!`);
         } catch (error) {
             message.channel.send("That osu! user does not exist!");
@@ -71,7 +36,7 @@ async function osu(osu_key, message, ...args) {
     if (args[0]) {
         username = args.join(" ");
     } else {
-        username = await findUser(message.author.id);
+        username = await fx.gen.findUser(message.author.id);
     }
 
     try {
@@ -151,9 +116,9 @@ async function recent(osu_key, message, ...args) {
             .setURL(score.beatmap.url)
             .setDescription(// add pp prediction if fc / if not best play
                 `🢝 ${letterRank} 🢝 **+${mods}** 🢝 **${Math.round(score.pp*100)/100}pp** 🢝 **${Math.round((score.accuracy*100)*100)/100}%** \r\n` +
-                `🢝   x${score.max_combo}/${beatmap.max_combo} 🢝 ${numberWithCommas(score.score)} 🢝 [${score.statistics.count_300}/${score.statistics.count_100}/${score.statistics.count_50}/${score.statistics.count_miss}]`
+                `🢝   x${score.max_combo}/${beatmap.max_combo} 🢝 ${fx.gen.numberWithCommas(score.score)} 🢝 [${score.statistics.count_300}/${score.statistics.count_100}/${score.statistics.count_50}/${score.statistics.count_miss}]`
             )
-            .setFooter(`score set ${(secondsToHms(Math.round((now-date)/1000)))} ago`);
+            .setFooter(`score set ${(fx.gen.secondsToHms(Math.round((now-date)/1000)))} ago`);
         message.channel.send({embeds: [info]});
     }
 
@@ -161,7 +126,7 @@ async function recent(osu_key, message, ...args) {
     if (args[0]) {
         username = args.join(" ");
     } else {
-        username = await findUser(message.author.id);
+        username = await fx.gen.findUser(message.author.id);
     }
 
     let params = { "key": "username" };

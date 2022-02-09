@@ -8,7 +8,11 @@ require("dotenv").config();
 client.login(process.env.GARBOT_DISCORD_BOT_TOKEN);
 
 // functions/commands
-const fx = require("./Functions/banchoapi");
+const fx = {
+    osu: require("./Functions/banchoapi"),
+    econ: require("./Functions/econ"),
+    gen: require("./Functions/gen")
+}
 const cmds = {
     general: require("./Commands/general"),
     osu: require("./Commands/osu"),
@@ -25,13 +29,14 @@ client.on("ready", async () => {
     console.log("Bot ready!");
     client.user.setActivity(">>help {page}");
 
-    await fx.get_access_token(); // get an osu access token for osu api-related commands
+    await fx.osu.get_access_token(); // get an osu access token for osu api-related commands
     setInterval(async () => { // refresh after expiration
-        await fx.get_access_token();
+        await fx.osu.get_access_token();
     }, process.env.OSU_ACCESS_TOKEN_EXPIRATION*1000);
 
     // check for all data files here
     // dynamically create if they dont exist
+    fx.econ.updateEcon();
 });
 
 client.on("messageCreate", async (message) => {

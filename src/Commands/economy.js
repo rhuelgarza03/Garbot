@@ -1,28 +1,13 @@
 const { MessageEmbed } = require("discord.js");
 const fs = require("fs");
 
+const fx = {
+    econ: require("../Functions/econ")
+}
+
 const WorkedRecently = new Set();
 let workCooldown = 3;
 let currency = "$";
-
-// move2fx
-// for balance(), send(), inventory()
-function parseMentions(message) {
-    if (message.mentions.members.first()) {
-        return message.mentions.members;
-    } else {
-        return null;
-    }
-}
-// move2fx
-// for balance(), deposit(), withdraw(), send(), buy()
-function econActionEmbed(title, value, prevmessage, color) {
-    let embed = new MessageEmbed()
-        .setAuthor(name=prevmessage.content, iconURL=prevmessage.member.displayAvatarURL())
-        .addField(title, value)
-        .setColor(color);
-    prevmessage.channel.send({ embeds: [embed] });
-}
 
 
 function work(message, ...args) {
@@ -60,13 +45,13 @@ function work(message, ...args) {
 function balance(message, ...args) {
     let obj = JSON.parse(fs.readFileSync("src/Data/economy/users.json"));
 
-    let mention = parseMentions(message);
+    let mention = fx.econ.parseMentions(message);
     if (mention) { // user mentioned
         mention = mention.first();
         if (!obj[mention.user.id]) {
-            econActionEmbed("Error", "No economy account made for this user, they can create one automatically by doing >>work.", message, "#FF0000");
+            fx.econ.econActionEmbed("Error", "No economy account made for this user, they can create one automatically by doing >>work.", message, "#FF0000");
         } else {
-            econActionEmbed(`${mention.displayName}'s balance`, 
+            fx.econ.econActionEmbed(`${mention.displayName}'s balance`, 
                 `**Cash:** ${currency}${obj[mention.user.id].cash} \r\n **Bank:** ${currency}${obj[mention.user.id].bank}`,
                 message,
                 "#333333"
@@ -74,9 +59,9 @@ function balance(message, ...args) {
         }
     } else { // no user mentioned
         if (!obj[message.author.id]) {
-            econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
+            fx.econ.econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
         } else {
-            econActionEmbed(`${message.member.displayName}'s balance`, 
+            fx.econ.econActionEmbed(`${message.member.displayName}'s balance`, 
                 `**Cash:** ${currency}${obj[message.author.id].cash} \r\n **Bank:** ${currency}${obj[message.author.id].bank}`,
                 message,
                 "#333333"
@@ -91,32 +76,32 @@ function deposit(message, ...args) {
     let depositAmount = parseInt(args[0]);
 
     if (!obj[message.author.id]) {
-        econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
+        fx.econ.econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
     } 
     else if (obj[message.author.id].cash <= 0) {
-        econActionEmbed("Error", "You have no cash right now.", message, "#FF0000");
+        fx.econ.econActionEmbed("Error", "You have no cash right now.", message, "#FF0000");
     }
     else if (!args[0]) {
-        econActionEmbed("Error", "No amount specified.", message, "#FF0000");
+        fx.econ.econActionEmbed("Error", "No amount specified.", message, "#FF0000");
     }
     else if (args[0] === "all") {
         obj[message.author.id].bank += obj[message.author.id].cash;
-        econActionEmbed("Deposit successful!", `You deposited ${currency}${obj[message.author.id].cash} into your bank account.`, message, "#333333");
+        fx.econ.econActionEmbed("Deposit successful!", `You deposited ${currency}${obj[message.author.id].cash} into your bank account.`, message, "#333333");
         obj[message.author.id].cash = 0;
         fs.writeFile("src/Data/economy/users.json", JSON.stringify(obj), () => {console.log(`user ${message.author.id} deposited ${currency}${obj[message.author.id].cash}`)} );
     } 
     else if (isNaN(args[0])) {
-        econActionEmbed("Error", "Invalid input.", message, "#FF0000");
+        fx.econ.econActionEmbed("Error", "Invalid input.", message, "#FF0000");
     } 
     else if (depositAmount > obj[message.author.id].cash) {
-        econActionEmbed("Error", "Insufficient funds.", message, "#FF0000");
+        fx.econ.econActionEmbed("Error", "Insufficient funds.", message, "#FF0000");
     } 
     else if (depositAmount <= 0) {
-        econActionEmbed("Error", "You can't deposit nothing.", message, "#FF0000");
+        fx.econ.econActionEmbed("Error", "You can't deposit nothing.", message, "#FF0000");
     } 
     else {
         obj[message.author.id].bank += depositAmount;
-        econActionEmbed("Deposit successful!", `You deposited ${currency}${depositAmount} into your bank account.`, message, "#333333");
+        fx.econ.econActionEmbed("Deposit successful!", `You deposited ${currency}${depositAmount} into your bank account.`, message, "#333333");
         obj[message.author.id].cash -= depositAmount;
         fs.writeFile("src/Data/economy/users.json", JSON.stringify(obj), () => {console.log(`user ${message.author.id} deposited ${currency}${depositAmount}`)} );
     }
@@ -128,32 +113,32 @@ function withdraw(message, ...args) {
     let withAmount = parseInt(args[0]);
 
     if (!obj[message.author.id]) {
-        econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
+        fx.econ.econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
     } 
     else if (obj[message.author.id].bank <= 0) {
-        econActionEmbed("Error", "You have no money to withdraw right now.", message, "#FF0000");
+        fx.econ.econActionEmbed("Error", "You have no money to withdraw right now.", message, "#FF0000");
     }
     else if (!args[0]) {
-        econActionEmbed("Error", "No amount specified.", message, "#FF0000");
+        fx.econ.econActionEmbed("Error", "No amount specified.", message, "#FF0000");
     }
     else if (args[0].toLowerCase() === "all") {
         obj[message.author.id].cash += obj[message.author.id].bank;
-        econActionEmbed("Withdraw successful!", `You withdrew ${currency}${obj[message.author.id].bank} from your bank account.`, message, "#333333");
+        fx.econ.econActionEmbed("Withdraw successful!", `You withdrew ${currency}${obj[message.author.id].bank} from your bank account.`, message, "#333333");
         obj[message.author.id].bank = 0;
         fs.writeFile("src/Data/economy/users.json", JSON.stringify(obj), () => {console.log(`user ${message.author.id} withdrew ${currency}${obj[message.author.id].bank}`)} );
     } 
     else if (isNaN(args[0])) {
-        econActionEmbed("Error", "Invalid input.", message, "#FF0000");
+        fx.econ.econActionEmbed("Error", "Invalid input.", message, "#FF0000");
     } 
     else if (withAmount > obj[message.author.id].bank) {
-        econActionEmbed("Error", "Insufficient funds.", message, "#FF0000");
+        fx.econ.econActionEmbed("Error", "Insufficient funds.", message, "#FF0000");
     } 
     else if (withAmount <= 0) {
-        econActionEmbed("Error", "You can't withdraw nothing.", message, "#FF0000");
+        fx.econ.econActionEmbed("Error", "You can't withdraw nothing.", message, "#FF0000");
     } 
     else {
         obj[message.author.id].cash += withAmount;
-        econActionEmbed("Withdrawal successful!", `You withdrew ${currency}${withAmount} from your bank account.`, message, "#333333");
+        fx.econ.econActionEmbed("Withdrawal successful!", `You withdrew ${currency}${withAmount} from your bank account.`, message, "#333333");
         obj[message.author.id].bank -= withAmount;
         fs.writeFile("src/Data/economy/users.json", JSON.stringify(obj), () => {console.log(`user ${message.author.id} withdrew ${currency}${withAmount}`)} );
     }
@@ -162,50 +147,50 @@ function withdraw(message, ...args) {
 function send(message, ...args) {
     let obj = JSON.parse(fs.readFileSync("src/Data/economy/users.json"));
 
-    let recipient = parseMentions(message);
+    let recipient = fx.econ.parseMentions(message);
 
     if (recipient) {
         recipient = recipient.first();
         let sendAmount = parseInt(args[1]);
 
         if (!obj[message.author.id]) {
-            econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
+            fx.econ.econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
         } 
         if (!obj[recipient.user.id]) {
-            econActionEmbed("Error", "No economy account made for this user, they can create one automatically by doing >>work.", message, "#FF0000");
+            fx.econ.econActionEmbed("Error", "No economy account made for this user, they can create one automatically by doing >>work.", message, "#FF0000");
         } 
         else if (recipient.user.id === message.author.id) {
-            econActionEmbed("Error", "You can't send money to yourself.", message, "#FF0000");
+            fx.econ.econActionEmbed("Error", "You can't send money to yourself.", message, "#FF0000");
         }
         else if (obj[message.author.id].cash <= 0) {
-            econActionEmbed("Error", "You have no cash on hand to send right now.", message, "#FF0000");
+            fx.econ.econActionEmbed("Error", "You have no cash on hand to send right now.", message, "#FF0000");
         }
         else if (!args[1]) {
-            econActionEmbed("Error", "No amount specified.", message, "#FF0000");
+            fx.econ.econActionEmbed("Error", "No amount specified.", message, "#FF0000");
         }
         else if (args[1].toLowerCase() === "all") {
             obj[recipient.user.id].bank += obj[message.author.id].cash;
-            econActionEmbed("Sent successfully!", `You sent ${currency}${obj[message.author.id].cash} to <@!${recipient.user.id}>'s bank account.`, message, "#333333");
+            fx.econ.econActionEmbed("Sent successfully!", `You sent ${currency}${obj[message.author.id].cash} to <@!${recipient.user.id}>'s bank account.`, message, "#333333");
             obj[message.author.id].cash = 0;
             fs.writeFile("src/Data/economy/users.json", JSON.stringify(obj), () => {console.log(`user ${message.author.id} sent ${currency}${obj[message.author.id].cash} to user ${recipient.user.id}`)} );
         } 
         else if (isNaN(args[1])) {
-            econActionEmbed("Error", "Invalid input.", message, "#FF0000");
+            fx.econ.econActionEmbed("Error", "Invalid input.", message, "#FF0000");
         } 
         else if (sendAmount > obj[message.author.id].cash) {
-            econActionEmbed("Error", "Insufficient funds.", message, "#FF0000");
+            fx.econ.econActionEmbed("Error", "Insufficient funds.", message, "#FF0000");
         } 
         else if (sendAmount <= 0) {
-            econActionEmbed("Error", "You can't send nothing.", message, "#FF0000");
+            fx.econ.econActionEmbed("Error", "You can't send nothing.", message, "#FF0000");
         } 
         else {
             obj[recipient.user.id].bank += sendAmount;
-            econActionEmbed("Sent successfully!", `You sent ${currency}${sendAmount} to <@!${recipient.user.id}>'s bank account.`, message, "#333333");
+            fx.econ.econActionEmbed("Sent successfully!", `You sent ${currency}${sendAmount} to <@!${recipient.user.id}>'s bank account.`, message, "#333333");
             obj[message.author.id].cash -= sendAmount;
             fs.writeFile("src/Data/economy/users.json", JSON.stringify(obj), () => {console.log(`user ${message.author.id} sent ${currency}${sendAmount} to user ${recipient.user.id}`)} );
         }
     } else {
-        econActionEmbed("Error", "No user specified to send money to.", message, "#FF0000");
+        fx.econ.econActionEmbed("Error", "No user specified to send money to.", message, "#FF0000");
     }
 }
 
@@ -237,21 +222,21 @@ function buy(message, ...args) {
             let cost = Math.floor(amount*parseInt(shop[itemIndex].price));
 
             if (!obj[message.author.id]) {
-                econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
+                fx.econ.econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
             } 
             else if (cost > obj[message.author.id].cash) {
-                econActionEmbed("Error", "Insufficient funds.", message, "#FF0000");
+                fx.econ.econActionEmbed("Error", "Insufficient funds.", message, "#FF0000");
             } // maybe add a "max" else if
             else {
                 obj[message.author.id].inv[item] = amount;
-                econActionEmbed("Purchase successful!", `You bought ${amount} ${item}(s)! You can check them in your inventory.`, message, "#333333");
+                fx.econ.econActionEmbed("Purchase successful!", `You bought ${amount} ${item}(s)! You can check them in your inventory.`, message, "#333333");
                 fs.writeFile("src/Data/economy/users.json", JSON.stringify(obj), () => { console.log(`user ${message.author.id} purchased ${amount} ${item}(s)`)} );
             }
         } else {
-            econActionEmbed("Error", "That item does not exist!", message, "#FF0000");
+            fx.econ.econActionEmbed("Error", "That item does not exist!", message, "#FF0000");
         }
     } else {
-        econActionEmbed("Error", "No item specified.", message, "#FF0000");
+        fx.econ.econActionEmbed("Error", "No item specified.", message, "#FF0000");
     }
 }
 
@@ -259,12 +244,12 @@ function inventory(message, ...args) {
     let obj = JSON.parse(fs.readFileSync("src/Data/economy/users.json"));
     let shop = JSON.parse(fs.readFileSync("src/Data/economy/shop.json"));
 
-    let mention = parseMentions(message);
+    let mention = fx.econ.parseMentions(message);
     
     if (mention) { // user mentioned
         mention = mention.first();
         if (!obj[mention.user.id]) {
-            econActionEmbed("Error", "No economy account made for this user, they can create one automatically by doing >>work.", message, "#FF0000");
+            fx.econ.econActionEmbed("Error", "No economy account made for this user, they can create one automatically by doing >>work.", message, "#FF0000");
         } else {
             let index;
             let keys = Object.keys(obj[mention.user.id].inv);
@@ -281,7 +266,7 @@ function inventory(message, ...args) {
         }
     } else { // no user mentioned
         if (!obj[message.author.id]) {
-            econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
+            fx.econ.econActionEmbed("Error", "No economy account made, you can create one automatically by doing >>work.", message, "#FF0000");
         } else {
             let index;
             let keys = Object.keys(obj[message.author.id].inv);
@@ -361,11 +346,11 @@ function addresponse(message, ...args) {
     response = response.join(" ");
 
     if (!response.includes("{x}")) {
-        econActionEmbed("Error", "Work response missing ``{x}``", message, "#FF0000");
+        fx.econ.econActionEmbed("Error", "Work response missing ``{x}``", message, "#FF0000");
     } else {
         list.push(response);
         fs.writeFile("src/Data/economy/workresponses.json", JSON.stringify(list), () => { console.log("response added to workresponses.json") });
-        econActionEmbed("Success!", "Work response added!", message, "#333333");
+        fx.econ.econActionEmbed("Success!", "Work response added!", message, "#333333");
     }
 }
 
