@@ -29,8 +29,8 @@ client.on("ready", async () => {
     fx.gen.checkFiles();
 
     console.log("Fetching osu! access token...");
-    await fx.osu.get_access_token(); // get an osu access token for osu api-related commands
-    setInterval(async () => { // refresh after expiration
+    await fx.osu.get_access_token();
+    setInterval(async () => {
         await fx.osu.get_access_token();
     }, process.env.OSU_ACCESS_TOKEN_EXPIRATION*1000);
 
@@ -55,9 +55,8 @@ client.on("messageCreate", async (message) => {
 
     // ~~~ command handling ~~~
     if (message.content.startsWith(prefix)) {
-        //let [command, ...args] = message.content.trim().slice(prefix.length).toLowerCase().split(/\s+/);
         let [command, ...args] = message.content.trim().slice(prefix.length).split(/\s+/); // array destructuring
-        console.log(`Command received: ${command} | Server: ${message.guild.name}`); // log all commands received
+        console.log(`Command received: ${command} | Server: ${message.guild.name}`);
 
         let osu_key = process.env.OSU_ACCESS_TOKEN;
 

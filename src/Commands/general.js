@@ -28,7 +28,9 @@ let helpCommands = [
     { cmd: ">>additem [\"name\"] [\"price\"] [\"item description\"]", desc: "Add an item to the economy store." },
     { cmd: ">>addresponse [response]", desc: "Add a work response for the >>work command." },
 
-    { cmd: ">>todo [message]", desc: "Display my todo list. optional parameters are ``add`` and ``delete``." }
+    { cmd: ">>todo [message]", desc: "Display my todo list. optional parameters are ``add`` and ``delete``." },
+    { cmd: ">>prefix [prefix]", desc: "Set this server's command prefix. Default is ``>>``." },
+    { cmd: ">>ping", desc: "Check Garbot's ping." }
 ];
 
 
