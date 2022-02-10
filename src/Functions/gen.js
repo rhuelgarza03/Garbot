@@ -1,9 +1,38 @@
 const { MessageEmbed } = require("discord.js");
 const fs = require("fs");
 
-function checkPrefix(guildId) {
+function checkFiles() {
+    let filePaths = [
+        "./src/Data/economy/workresponses.json",
+        "./src/Data/economy/shop.json",
+        "./src/Data/todo.json",
+        "./src/Data/economy/users.json",
+        "./src/Data/osu_users.json",
+        "./src/Data/serverPrefs.json"
+    ];
+    for (let i = 0; i < filePaths.length; i++) {
+        try {
+            if (fs.existsSync(filePaths[i])) {
+                console.log(`${filePaths[i]} exists`);
+            } else {
+                console.log(`${filePaths[i]} does not exist, creating...`);
+                let content = {};
+                if (i == 0 || i == 1 || i == 2) { content = [] } //this is here solely because I made some data files arrays instead of objects
+                fs.writeFile(filePaths[i].substring(2), JSON.stringify(content), () => {console.log(`${filePaths[i]} created.`)});
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+}
+
+function checkPrefix(defaultPrefix, guildId) {
     let prefs = JSON.parse(fs.readFileSync("src/Data/serverPrefs.json"));
-    return prefs[guildId].prefix;
+    if (prefs[guildId].prefix) {
+        return prefs[guildId].prefix;
+    } else {
+        return defaultPrefix;
+    }
 }
 
 function generalEmbed(title, value, prevmessage, color) {
@@ -49,6 +78,7 @@ async function findUser(discordid) {
 }
 
 module.exports = {
+    checkFiles,
     checkPrefix,
     generalEmbed,
     secondsToHms,

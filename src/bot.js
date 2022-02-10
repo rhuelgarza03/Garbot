@@ -21,10 +21,13 @@ const cmds = {
     econ: require("./Commands/economy")
 }
 
-let prefix = ">>";
+let defaultPrefix = ">>";
 
 // =============== events ===============
 client.on("ready", async () => {
+    console.log("Checking data files...");
+    fx.gen.checkFiles();
+
     console.log("Fetching osu! access token...");
     await fx.osu.get_access_token(); // get an osu access token for osu api-related commands
     setInterval(async () => { // refresh after expiration
@@ -39,7 +42,7 @@ client.on("ready", async () => {
 client.on("messageCreate", async (message) => {
     console.log(`[${message.author.tag}]: ${message.content}`); // log all messages (remove after this thing hits 3 servers)
     if (message.author.bot || !message.guild) return;
-    prefix = fx.gen.checkPrefix(message.guild.id);
+    prefix = fx.gen.checkPrefix(defaultPrefix, message.guild.id);
 
     if (message.content.startsWith("um")) {
         let msg = message.content.split(" ");
