@@ -45,17 +45,16 @@ function generalEmbed(title, value, prevmessage, color) {
 
 function secondsToHms(d) {
     d = Number(d);
-    var h = Math.floor(d / 3600);
-    var m = Math.floor(d % 3600 / 60);
-    var s = Math.floor(d % 3600 % 60);
-
-    var hDisplay = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "";
-    var mDisplay = m > 0 ? m + (m == 1 ? " minute, " : " minutes, ") : "";
-    var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
-    return hDisplay + mDisplay + sDisplay;
+    let h = Math.floor(d / 3600);
+    let m = Math.floor(d % 3600 / 60);
+    let s = Math.floor(d % 3600 % 60);
+    let hour = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "";
+    let min = m > 0 ? m + (m == 1 ? " minute, " : " minutes, ") : "";
+    let sec = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
+    return hour + min + sec;
 }
 
-function numberWithCommas(num) { // add commas to any big number
+function numberWithCommas(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 

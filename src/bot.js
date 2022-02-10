@@ -107,6 +107,10 @@ client.on("messageCreate", async (message) => {
             case "purchase":
                 cmds.econ.buy(message, ...args);
                 break;
+            case "toss":
+            case "throw":
+                cmds.econ.toss(message, ...args);
+                break;
             case "inventory":
             case "inv":
                 cmds.econ.inventory(message, ...args);

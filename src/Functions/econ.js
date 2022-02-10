@@ -1,5 +1,4 @@
 const { MessageEmbed } = require("discord.js");
-const fs = require("fs");
 
 // balance(), send(), inventory()
 function parseMentions(message) {

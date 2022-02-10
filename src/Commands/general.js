@@ -36,7 +36,7 @@ let helpCommands = [
 
 //
 function help(message, ...args) {
-    let cmdsPerPage = 3;
+    let cmdsPerPage = 5;
     
     let pages = Math.ceil(helpCommands.length / cmdsPerPage);
     let pageIndex = 1;
