@@ -1,7 +1,7 @@
 // Garbot2 or just Garbot bc Garbot1 is abandoned lol
 // developed by Garhu5 AKA garhu AKA Rhuel
 
-const { Client, Intents, MessageEmbed } = require("discord.js");
+const { Client, Intents } = require("discord.js");
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_PRESENCES] });
 
 require("dotenv").config();
@@ -9,7 +9,7 @@ client.login(process.env.GARBOT_DISCORD_BOT_TOKEN);
 
 // functions/commands
 const fx = {
-    osu: require("./Functions/banchoapi"),
+    bancho: require("./Functions/banchoapi"),
     econ: require("./Functions/econ"),
     gen: require("./Functions/gen")
 }
@@ -29,9 +29,9 @@ client.on("ready", async () => {
     fx.gen.checkFiles();
 
     console.log("Fetching osu! access token...");
-    await fx.osu.get_access_token();
+    await fx.bancho.get_access_token();
     setInterval(async () => {
-        await fx.osu.get_access_token();
+        await fx.bancho.get_access_token();
     }, process.env.OSU_ACCESS_TOKEN_EXPIRATION*1000);
 
     console.log(`Waking ${client.user.tag}...`);
@@ -69,7 +69,7 @@ client.on("messageCreate", async (message) => {
                 cmds.general.avatar(message, ...args);
                 break;
             case "annoy":
-            case "bug":
+            case "message":
                 cmds.general.annoy(client, message, ...args);
                 break;
             case "nickname":
@@ -109,6 +109,7 @@ client.on("messageCreate", async (message) => {
                 break;
             case "toss":
             case "throw":
+            case "trash":
                 cmds.econ.toss(message, ...args);
                 break;
             case "inventory":

@@ -1,13 +1,12 @@
 const { MessageEmbed } = require("discord.js");
 const superagent = require("superagent");
-const fs = require("fs");
 
 const fx = {
-    gen: require("../Functions/gen")
+    gen: require("../Functions/gen"),
+    osu: require("../Functions/osufx")
 }
 
 let API_URL = "https://osu.ppy.sh/api/v2/";
-// json SUCKS!!!!!!!!!
 
 async function osuset(osu_key, message, ...args) {
     if (args[0]) {
@@ -21,7 +20,7 @@ async function osuset(osu_key, message, ...args) {
                 .set("Accept", "application/json")
                 .set("Authorization", `Bearer ${osu_key}`);
             let osuname = results.body.username;
-            fx.gen.assignUser(message.author.id, osuname);
+            fx.osu.assignUser(message.author.id, osuname);
             message.channel.send(`Your osu! user has been set to ${osuname}!`);
         } catch (error) {
             message.channel.send("That osu! user does not exist!");
@@ -36,7 +35,7 @@ async function osu(osu_key, message, ...args) {
     if (args[0]) {
         username = args.join(" ");
     } else {
-        username = await fx.gen.findUser(message.author.id);
+        username = await fx.osu.findUser(message.author.id);
     }
 
     try {
@@ -126,7 +125,7 @@ async function recent(osu_key, message, ...args) {
     if (args[0]) {
         username = args.join(" ");
     } else {
-        username = await fx.gen.findUser(message.author.id);
+        username = await fx.osu.findUser(message.author.id);
     }
 
     let params = { "key": "username" };
