@@ -2,11 +2,10 @@ const superagent = require("superagent");
 const fx = require("../../Functions/load_fx");
 let API_URL = "https://osu.ppy.sh/api/v2/";
 
-// link osu username to discord account
 module.exports = async function osuset(osu_key, message, ...args) {
     if (args[0]) {
         try {
-            let username = args.join(" "); // join the words together if a name with spaces is entered
+            let username = args.join(" ");
             let params = { "key": "username" }
             let endpoint = `users/${username}/osu`;
             let results = await superagent.get(`${API_URL}${encodeURI(endpoint)}`)
@@ -21,6 +20,6 @@ module.exports = async function osuset(osu_key, message, ...args) {
             message.channel.send("That osu! user does not exist!");
         }
     } else {
-        message.channel.send("No osu! username specified.");
+        fx.general.generalEmbed("Error", "No osu! username specified.", message, "#FF0000");
     }
 }

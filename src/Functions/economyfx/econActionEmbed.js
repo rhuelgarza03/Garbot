@@ -1,3 +1,4 @@
+const { MessageEmbed } = require("discord.js");
 module.exports = function econActionEmbed(title, value, prevmessage, color) {
     let embed = new MessageEmbed()
         .setAuthor(name=prevmessage.content, iconURL=prevmessage.member.displayAvatarURL())

@@ -8,8 +8,8 @@ let helpCommands = [
     { cmd: ">>annoy [message]", desc: "annoy the dev by sending them a direct message." },
 
     { cmd: ">>osu {osu username}", desc: "Get stats for an osu! standard user profile. You can also tie a profile to your account with >>osuset" },
-    { cmd: ">>osuset [osu username]", desc: "Adds an osu profile to your discord account for command convenience." },
-    { cmd: ">>recent [osu username/@member]", desc: "Display a user's most recent play. (failed scores not included yet)" },
+    { cmd: ">>osuset [osu username]", desc: "Links an osu profile to your discord account for command convenience." },
+    { cmd: ">>recent [osu username/@member]", desc: "Display a user's most recent osu! play." },
 
     { cmd: ">>roll {max number} ", desc: "Roll a random number from 1 to 100, or the number specified." },
 
@@ -47,7 +47,9 @@ module.exports = function help(message, ...args) {
             "\r\n {curly brackets} mean **optional**" +
             "\r\n -----------------------------------------------------"
         )
-        .setFooter("Garbot is an open source discord.js project by garhu. You can check the GitHub repository at https://github.com/rhuelgarza03/Garbot");
+        .setFooter({
+            text: "Garbot is an open source discord.js project by garhu. You can check the GitHub repository at https://github.com/rhuelgarza03/Garbot"
+        });
     for (let i = arrayIndex; i < arrayIndex+cmdsPerPage; i++) {
         if (!helpCommands[i]) continue;
         helpEmbed.addField(helpCommands[i].cmd, helpCommands[i].desc);

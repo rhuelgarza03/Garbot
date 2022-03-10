@@ -1,5 +1,6 @@
 const { MessageEmbed } = require("discord.js");
 const fx = require("../../Functions/load_fx");
+
 module.exports = function userinfo(message, ...args) {
     let member = message.member;
     if (message.mentions.members.first()) member = message.mentions.members.first();
@@ -32,7 +33,9 @@ module.exports = function userinfo(message, ...args) {
             { name: "Status", value: status, inline: true},
             { name: "Server Join Date", value: member.joinedAt.toString(), inline: true }
         )
-        .setFooter(`User ID: ${member.id}`);
+        .setFooter({
+            text: `User ID: ${member.id}`
+        });
         message.channel.send({embeds: [embed]});
     } else {
         fx.general.generalEmbed("Error", "Member not found", message, "#FF0000");

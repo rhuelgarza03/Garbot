@@ -96,13 +96,15 @@ module.exports = async function recent(osu_key, message, ...args) {
                 message.channel.send({embeds: [info]});
             })
             .catch(err => {
-                message.channel.send("error during pp calculation");
+                fx.general.generalEmbed("Error", "Error during pp calculation", message, "#FF0000");
                 console.log(err);
             });
     }
 
     let username = undefined;
-    if (args[0]) {
+    if (message.mentions.members.first()) {
+        username = await fx.osu.findUser(message.mentions.members.first().user.id);
+    } else if (args[0]) {
         username = args.join(" ");
     } else {
         username = await fx.osu.findUser(message.author.id);
@@ -110,11 +112,15 @@ module.exports = async function recent(osu_key, message, ...args) {
 
     let params = { "key": "username" };
     let endpoint = `users/${username}/`;
-    // retrieve user id for the embed
-    let results = await superagent.get(`${API_URL}${encodeURI(endpoint)}`)
+    await superagent.get(`${API_URL}${encodeURI(endpoint)}`)
         .query(params)
         .set("Content-Type", "application/json")
         .set("Accept", "application/json")
-        .set("Authorization", `Bearer ${osu_key}`);
-    recentEmbed(results.body.id);
+        .set("Authorization", `Bearer ${osu_key}`)
+        .then(res => {
+            recentEmbed(res.body.id);
+        })
+        .catch(err => {
+            fx.general.generalEmbed("Error", "That user does not exist!", message, "#FF0000");
+        });
 }
