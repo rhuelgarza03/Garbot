@@ -7,31 +7,20 @@ const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_
 require("dotenv").config();
 client.login(process.env.GARBOT_DISCORD_BOT_TOKEN);
 
-// functions/commands
-const fx = {
-    bancho: require("./Functions/banchoapi"),
-    econ: require("./Functions/econ"),
-    gen: require("./Functions/gen")
-}
-const cmds = {
-    general: require("./Commands/general"),
-    osu: require("./Commands/osu"),
-    fun: require("./Commands/fun"),
-    dev: require("./Commands/dev"),
-    econ: require("./Commands/economy")
-}
+const fx = require("./Functions/load_fx");
+const cmds = require("./Commands/load_cmds");
 
 let defaultPrefix = ">>";
 
 // =============== events ===============
 client.on("ready", async () => {
     console.log("Checking data files...");
-    fx.gen.checkFiles();
+    fx.general.checkFiles();
 
     console.log("Fetching osu! access token...");
-    await fx.bancho.get_access_token();
+    await fx.osu.banchoapi();
     setInterval(async () => {
-        await fx.bancho.get_access_token();
+        await fx.osu.banchoapi();
     }, process.env.OSU_ACCESS_TOKEN_EXPIRATION*1000);
 
     console.log(`Waking ${client.user.tag}...`);
@@ -42,7 +31,7 @@ client.on("ready", async () => {
 client.on("messageCreate", async (message) => {
     console.log(`[${message.author.tag}]: ${message.content}`); // log all messages (remove after this thing hits 3 servers)
     if (message.author.bot || !message.guild) return;
-    prefix = fx.gen.checkPrefix(defaultPrefix, message.guild.id);
+    prefix = fx.general.checkPrefix(defaultPrefix, message.guild.id);
 
     if (message.content.startsWith("um")) {
         let msg = message.content.split(" ");
@@ -152,5 +141,3 @@ client.on("messageCreate", async (message) => {
         }
     }
 });
-
-// ඞ
