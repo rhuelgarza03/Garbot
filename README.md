@@ -1,9 +1,9 @@
 # Garbot
 A hobby discord bot that can:
-    - general commands that can retrieve a user's avatar or info
-    - economy with a store and user-suggested responses/items
-    - osu! api integration to check recent scores and profile stats
-    - dynamic file creation
+  - general commands that can retrieve a user's avatar or info
+  - economy with a store and user-suggested responses/items
+  - osu! api integration to check recent scores and profile stats
+  - dynamic file creation
 
 You can download this repo and:
 Install dependencies with ``npm install``
