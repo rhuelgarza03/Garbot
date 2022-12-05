@@ -1,14 +1,13 @@
 # Garbot
-An all-purpose discord bot with many features.
+A hobby discord bot that can:
+    - general commands that can retrieve a user's avatar or info
+    - economy with a store and user-suggested responses/items
+    - osu! api integration to check recent scores and profile stats
+    - dynamic file creation
 
-You can download this repo and run him yourself with ``npm run start``. 
-You will need node.js and the libraries from ``package.json`` installed.
-
-Currently has the following features: 
-- general commands that can retrieve a user's avatar or info
-- economy with a store and user-suggested responses/items
-- osu! api integration to check recent scores and profile stats
-- dynamic file creation
+You can download this repo and:
+Install dependencies with ``npm install``
+Start bot with ``npm run start``
 
 Command list:
 
